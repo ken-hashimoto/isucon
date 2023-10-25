@@ -74,34 +74,34 @@ ab -c 1 -n 10 http://localhost/
      - CPU が大きく使われているプロセスはどのプロセスか
 3. 上の 2 でたとえば MySQL に大きく CPU が使われていることがわかった場合、MySQL のボトルネックを解消する
 
-- スロークエリログを出力して、それを解析する。具体的にはまずスロークエリログを出力するために`webapp/etc/mysql/conf.d/my.cnf`に次を記述する
+   - スロークエリログを出力して、それを解析する。具体的にはまずスロークエリログを出力するために`webapp/etc/mysql/conf.d/my.cnf`に次を記述する
 
-```
-[mysqld]
-slow_query_log = 1
-slow_query_log_file = /var/log/mysql/mysql-slow.log
-long_query_time = 0
-```
+   ```
+   [mysqld]
+   slow_query_log = 1
+   slow_query_log_file = /var/log/mysql/mysql-slow.log
+   long_query_time = 0
+   ```
 
-- この変更を適用するために MySQL の再起動をする。EC2 で動作している場合は root ユーザーで`systemctl restart mysql`を実行する。docker で動作している場合は`docker compose down`をしてから`docker comopse up`を行う。
+   - この変更を適用するために MySQL の再起動をする。EC2 で動作している場合は root ユーザーで`systemctl restart mysql`を実行する。docker で動作している場合は`docker compose down`をしてから`docker comopse up`を行う。
 
-- 出力したログを集計するために`mysqldumpslow`コマンドを用いる
+   - 出力したログを集計するために`mysqldumpslow`コマンドを用いる
 
-```
-mysqldumpslow /var/log/mysql/mysql-slow.log
-```
+   ```
+   mysqldumpslow /var/log/mysql/mysql-slow.log
+   ```
 
-- `mysqldumpslow`コマンドはログ中の実行時間の合計が長いクエリから順に表示する。
+   - `mysqldumpslow`コマンドはログ中の実行時間の合計が長いクエリから順に表示する。
 
-- 遅いクエリが見つかったら実際にスロークエリログに出力されたログを見てみる。
-- `Rows_examind`の値が大きい場合、これは走査するレコードの数が大きいことを示す。
-- EXPLAIN 文でクエリの実行計画を確認する
-- Index が使用されていない場合、Index を貼ることを考える。
-- 一般に、プライマリーキーしかインデックスがないテーブルからプライマリーキー以外の条件で WHERE 句で指定した条件に一致する行を見つけるためには、テーブルのすべての行を読み取る必要がある
+   - 遅いクエリが見つかったら実際にスロークエリログに出力されたログを見てみる。
+   - `Rows_examind`の値が大きい場合、これは走査するレコードの数が大きいことを示す。
+   - EXPLAIN 文でクエリの実行計画を確認する
+   - Index が使用されていない場合、Index を貼ることを考える。
+   - 一般に、プライマリーキーしかインデックスがないテーブルからプライマリーキー以外の条件で WHERE 句で指定した条件に一致する行を見つけるためには、テーブルのすべての行を読み取る必要がある
 
 4. チューニングをしたあとは、そのチューニングが有効であったかどうかを確認する。
 
-- ab コマンドを再実行し、top コマンドで CPU 使用率を確認するなど
+   - ab コマンドを再実行し、top コマンドで CPU 使用率を確認するなど
 
 ### ベンチマーカーの並列度
 
